@@ -4,6 +4,7 @@ In this module, you can find items.
 DocumentItem contains information about a Document (or Webpage).
 LinkItem contains information about a Link between two Documents.
 """
+
 import re
 import unicodedata
 
@@ -12,7 +13,7 @@ from scrapy.loader.processors import MapCompose, TakeFirst
 
 all_chars = (chr(i) for i in range(0x110000))
 control_chars = ''.join(c for c in all_chars if unicodedata.category(c) == 'Cc')
-control_char_re = re.compile('[%s]' % re.escape(control_chars))
+control_char_re = re.compile(f'[{re.escape(control_chars)}]')
 
 
 def remove_control_chars(s):

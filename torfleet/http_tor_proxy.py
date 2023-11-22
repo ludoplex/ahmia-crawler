@@ -10,6 +10,7 @@ Test:
 curl -x http://localhost:15000 http://msydqstlz2kzerdg.onion/
 """
 
+
 import sys
 import socks
 import socket
@@ -24,7 +25,7 @@ try:
         print("python3 http_tor_proxy.py <SOCKS_PORT> <HTTP_PROXY_PORT>")
         sys.exit()
 except Exception as e:
-    print( str(e) )
+    print(e)
     sys.exit()
 
 def create_connection(address, timeout=None, source_address=None):

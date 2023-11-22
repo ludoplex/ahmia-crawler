@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Settings"""
 
+
 # Scrapy settings for monitor project
 #
 # For simplicity, this file contains only the most important settings by
@@ -82,9 +83,7 @@ SEEDLIST = ['http://torlinkv7cft5zhegrokjrxj2st4hcimgidaxdmcmdpcrnwfxrr2zxqd.oni
 url1 = 'http://donionsixbjtiohce24abfgsffo2l4tk26qx464zylumgejukfq2vead.onion/?cat=18&pg='
 url2 = 'http://ubc4jupmrxzk5367ndkm2k66h6txtj5jg4ulscx4qb2wqnx2drevbwad.onion/'
 for index in range(1, 100):
-    SEEDLIST.append(url1 + str(index))
-    SEEDLIST.append(url2 + str(index))
-
+    SEEDLIST.extend((url1 + str(index), url2 + str(index)))
 BANNED_DOMAINS = []
 response = requests.get('https://ahmia.fi/banned/?987654321')
 for md5 in response.text.split("\n"):
@@ -96,8 +95,8 @@ FAKE_DOMAINS = []
 response = requests.get('https://ahmia.fi/static/fakelist.txt')
 for onion in response.text.split("\n"):
     onion = onion.strip().replace(" ", "")
-    if len(onion) == 16 or len(onion) == 56:
-        FAKE_DOMAINS.append('%s.onion' % onion)
+    if len(onion) in {16, 56}:
+        FAKE_DOMAINS.append(f'{onion}.onion')
 
 # Tor proxy settings
 HTTPS_PROXY_TOR_PROXIES = ["http://localhost:8123/"]  # Tor HTTPS Polipo proxy

@@ -326,10 +326,10 @@ class socksocket(_BaseSocket):
         Blocks until the required number of bytes have been received."""
         data = b""
         while len(data) < count:
-            d = file.read(count - len(data))
-            if not d:
+            if d := file.read(count - len(data)):
+                data += d
+            else:
                 raise GeneralProxyError("Connection closed unexpectedly")
-            data += d
         return data
 
     def settimeout(self, timeout):
@@ -522,7 +522,7 @@ class socksocket(_BaseSocket):
             writer.flush()
             chosen_auth = self._readall(reader, 2)
 
-            if chosen_auth[0:1] != b"\x05":
+            if chosen_auth[:1] != b"\x05":
                 # Note: string[i:i+1] is used because indexing of a bytestring
                 # via bytestring[i] yields an integer in Python 3
                 raise GeneralProxyError(
@@ -539,7 +539,7 @@ class socksocket(_BaseSocket):
                              + password)
                 writer.flush()
                 auth_status = self._readall(reader, 2)
-                if auth_status[0:1] != b"\x01":
+                if auth_status[:1] != b"\x01":
                     # Bad response
                     raise GeneralProxyError(
                         "SOCKS5 proxy server sent invalid data")
@@ -547,9 +547,8 @@ class socksocket(_BaseSocket):
                     # Authentication failed
                     raise SOCKS5AuthError("SOCKS5 authentication failed")
 
-                # Otherwise, authentication succeeded
+                        # Otherwise, authentication succeeded
 
-            # No authentication is required if 0x00
             elif chosen_auth[1:2] != b"\x00":
                 # Reaching here is always bad
                 if chosen_auth[1:2] == b"\xFF":
@@ -567,7 +566,7 @@ class socksocket(_BaseSocket):
 
             # Get the response
             resp = self._readall(reader, 3)
-            if resp[0:1] != b"\x05":
+            if resp[:1] != b"\x05":
                 raise GeneralProxyError(
                     "SOCKS5 proxy server sent invalid data")
 
@@ -684,7 +683,7 @@ class socksocket(_BaseSocket):
 
             # Get the response from the server
             resp = self._readall(reader, 8)
-            if resp[0:1] != b"\x00":
+            if resp[:1] != b"\x00":
                 # Bad data
                 raise GeneralProxyError(
                     "SOCKS4 proxy server sent invalid data")
@@ -754,7 +753,7 @@ class socksocket(_BaseSocket):
 
         if status_code != 200:
             error = "{0}: {1}".format(status_code, status_msg)
-            if status_code in (400, 403, 405):
+            if status_code in {400, 403, 405}:
                 # It's likely that the HTTP proxy server does not support the
                 # CONNECT tunneling method
                 error += ("\n[*] Note: The HTTP proxy server may not be"
@@ -784,8 +783,7 @@ class socksocket(_BaseSocket):
             # Probably IPv6, not supported -- raise an error, and hope
             # Happy Eyeballs (RFC6555) makes sure at least the IPv4
             # connection works...
-            raise socket.error("PySocks doesn't support IPv6: %s"
-                               % str(dest_pair))
+            raise socket.error(f"PySocks doesn't support IPv6: {str(dest_pair)}")
 
         dest_addr, dest_port = dest_pair
 
@@ -864,7 +862,7 @@ class socksocket(_BaseSocket):
         """
         (proxy_type, proxy_addr, proxy_port, rdns, username,
          password) = self.proxy
-        proxy_port = proxy_port or DEFAULT_PORTS.get(proxy_type)
-        if not proxy_port:
+        if proxy_port := proxy_port or DEFAULT_PORTS.get(proxy_type):
+            return proxy_addr, proxy_port
+        else:
             raise GeneralProxyError("Invalid proxy type")
-        return proxy_addr, proxy_port
