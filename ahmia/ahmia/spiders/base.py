@@ -139,7 +139,7 @@ class WebSpider(CrawlSpider):
         """ Compute the pagerank dict """
         new_links = self.build_links()
 
-        nodes = set([url_hash for link in new_links for url_hash in link])
+        nodes = {url_hash for link in new_links for url_hash in link}
         links_graph = ig.Graph(len(nodes))
         links_graph.vs["name"] = list(nodes)
         links_graph.add_edges(new_links)
@@ -174,8 +174,7 @@ class WebSpider(CrawlSpider):
         converter.ignore_links = True
         encoding = self.detect_encoding(response)
         decoded_html = response.body.decode(encoding, 'ignore')
-        string = converter.handle(decoded_html)
-        return string
+        return converter.handle(decoded_html)
 
     def parse_item(self, response):
         """ Parse a response into a DocumentItem. """
@@ -192,16 +191,14 @@ class WebSpider(CrawlSpider):
         links = []
         a_links = hxs.xpath('//a')
         for link in a_links:
-            link_obj = {}
             # Extract the link's URL
             link_str = " ".join(link.xpath('@href').extract())
-            link_obj['link'] = link_str.replace("\n", "")
             # Extract the links value
             link_name_str = " ".join(link.xpath('text()').extract())
             link_name_str = link_name_str.replace("\n", "")
             link_name_str = link_name_str.lstrip()
             link_name_str = link_name_str.rstrip()
-            link_obj['link_name'] = link_name_str
+            link_obj = {'link': link_str.replace("\n", ""), 'link_name': link_name_str}
             # Skip extremely long "links" and link names (non-sense, broken HTML)
             if len(link_obj['link']) >= 500 or len(link_obj['link_name']) >= 500:
                 continue # Skip, cannot be right link name or link URL
@@ -212,7 +209,7 @@ class WebSpider(CrawlSpider):
         title_list = hxs.xpath('//title/text()').extract()
         title = ' '.join(title_list)
         body_text = self.html2string(response)
-        text = title + " " + body_text
+        text = f"{title} {body_text}"
         doc_loader.add_value('content', text)
         doc_loader.add_value('raw_text', text)
 
@@ -227,11 +224,11 @@ class WebSpider(CrawlSpider):
             "%Y-%m-%dT%H:%M:%S"))
         item = doc_loader.load_item()
         # Clean extremy long weird text content from the item
-        item["h1"] = item.get("h1", "")[0:100]
-        item["title"] = item.get("title", "")[0:100]
-        item["raw_title"] = item.get("raw_title", "")[0:100]
-        item["content_type"] = item.get("content_type", "")[0:100]
-        item["meta"] = item.get("meta", "")[0:1000]
-        item["content"] = item.get("content", "")[0:500000]
-        item["raw_text"] = item.get("raw_text", "")[0:500000]
+        item["h1"] = item.get("h1", "")[:100]
+        item["title"] = item.get("title", "")[:100]
+        item["raw_title"] = item.get("raw_title", "")[:100]
+        item["content_type"] = item.get("content_type", "")[:100]
+        item["meta"] = item.get("meta", "")[:1000]
+        item["content"] = item.get("content", "")[:500000]
+        item["raw_text"] = item.get("raw_text", "")[:500000]
         return item

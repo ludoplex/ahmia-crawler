@@ -10,6 +10,7 @@ Test:
 curl -x http://localhost:15000 http://msydqstlz2kzerdg.onion/
 """
 
+
 import sys
 
 try:
@@ -21,7 +22,7 @@ try:
         print("python3 http_tor_proxy.py <SOCKS_PORT> <HTTP_PROXY_PORT>")
         sys.exit()
 except Exception as e:
-    print( str(e) )
+    print(e)
     sys.exit()
 
 if sys.version_info < (3, 0):
@@ -42,10 +43,7 @@ else:
 def send_response(self, code, message=None):
     self.log_request(code)
     if message is None:
-        if code in self.responses:
-            message = self.responses[code][0]
-        else:
-            message = ''
+        message = self.responses[code][0] if code in self.responses else ''
     if self.request_version != 'HTTP/0.9':
         self.wfile.write("%s %d %s\r\n" % (self.protocol_version, code, message))
     # self.send_header('Server', self.version_string())
@@ -99,7 +97,7 @@ class Proxy(SimpleHTTPServer.SimpleHTTPRequestHandler):
         headers = dict()
         for header in response.headers.headers:
             if ': ' not in header:
-                raise ValueError('Invalid header. ": " not presents in "%s".' % header.strip())
+                raise ValueError(f'Invalid header. ": " not presents in "{header.strip()}".')
             try:
                 key, value = header.rstrip().split(': ', 1)
             except ValueError:
@@ -159,7 +157,7 @@ class Proxy(SimpleHTTPServer.SimpleHTTPRequestHandler):
 try:
     httpd = SocketServer.ForkingTCPServer(('', HTTP_PROXY_PORT), Proxy)
 except socket.error as e:
-    print('Error: %s' % e)
+    print(f'Error: {e}')
     exit()
 
 try:
